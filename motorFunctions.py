@@ -11,7 +11,7 @@ old_setting = termios.tcgetattr(file_desc)
 tty.setraw(sys.stdin)
 
 def initialize():
-  print("initialize")
+  sys.stdout.write("initialize\r\n")
   # Declare the GPIO settings
   GPIO.setmode(GPIO.BOARD)
 
@@ -26,14 +26,14 @@ def initialize():
   
   global pwm
   global pwm2
-  pwm = GPIO.PWM(33, 2000000)
+  pwm = GPIO.PWM(33, 20000)
   pwm.start(100);
-  pwm2 = GPIO.PWM(18, 2000000)
+  pwm2 = GPIO.PWM(18, 20000)
   pwm2.start(100);
 
 
-def setBackward():
-  print("setBackward")
+def setForward():
+  sys.stdout.write("setBackward\r\n")
   # Drive the motor clockwise
   # Motor A:
   GPIO.output(12, GPIO.HIGH) # Set AIN1
@@ -43,8 +43,8 @@ def setBackward():
   GPIO.output(16, GPIO.LOW) # Set BIN2
 
 
-def setForward():
-  print("setForward")
+def setBackward():
+  sys.stdout.write("setForward\r\n")
   # Drive the motor counterclockwise
   # Motor A:
   GPIO.output(12, GPIO.LOW) # Set AIN1
@@ -53,8 +53,23 @@ def setForward():
   GPIO.output(15, GPIO.LOW) # Set BIN1
   GPIO.output(16, GPIO.HIGH) # Set BIN2
 
+def turnRight(speed):
+  if speed == 0:
+    setMotorSpeedA(90)
+  setMotorSpeedB(0)
+  time.sleep(0.3)
+  setMotorSpeed(speed)
+
+def turnLeft(speed):
+  if speed == 0:
+    setMotorSpeedB(90)
+  setMotorSpeedA(0)
+  time.sleep(0.3)
+  setMotorSpeed(speed)
+
+
 def setTurnDimeLeft():
-  print("setTurnDimeLeft")
+  sys.stdout.write("setTurnDimeLeft\r\n")
   # Drive the A counterclockwise
   # Motor A:
   GPIO.output(12, GPIO.LOW) # Set AIN1
@@ -65,7 +80,7 @@ def setTurnDimeLeft():
   GPIO.output(16, GPIO.LOW) # Set BIN2
 
 def setTurnDimeRight():
-  print("setTurnDimeRight")
+  sys.stdout.write("setTurnDimeRight\r\n")
   # Drive the A clockwise
   # Motor A:
   GPIO.output(12, GPIO.HIGH) # Set AIN1
@@ -75,29 +90,36 @@ def setTurnDimeRight():
   GPIO.output(15, GPIO.LOW) # Set BIN1
   GPIO.output(16, GPIO.HIGH) # Set BIN2
 
+
+def setMotorSpeedA(percent):
+  sys.stdout.write("setMotorSpeedA: " + str(percent) + "\r\n")
+  global pwm
+  pwm.ChangeDutyCycle(percent)
+
+def setMotorSpeedB(percent):
+  sys.stdout.write("setMotorSpeedB: " + str(percent) + "\r\n")
+  global pwm2
+  pwm2.ChangeDutyCycle(percent)
+
+
+
 def setMotorSpeed(percent = 80):
-  print("setMotorSpeed: " + str(percent))
+  sys.stdout.write("setMotorSpeed: " + str(percent) + "\r\n")
   # Set the motor speed
   # Motor A:
-  global pwm
-  #pwm = GPIO.PWM(33, 100)
-  #pwm.start(100)
-  pwm.ChangeDutyCycle(percent)
+  setMotorSpeedA(percent)
   #GPIO.output(33, GPIO.HIGH) # Set PWMA
   # Motor B:
-  global pwm2
-  #pwm2 = GPIO.PWM(18, 100)
-  #pwm2.start(100)
-  pwm2.ChangeDutyCycle(percent)
+  setMotorSpeedB(percent)
   #GPIO.output(18, GPIO.HIGH) # Set PWMA
 
 def standByOff():
-  print("standByOff")
+  sys.stdout.write("standByOff\r\n")
   # Disable STBY (standby)
   GPIO.output(13, GPIO.HIGH)
 
 def standBy():
-  print("standBy")
+  sys.stdout.write("standBy\r\n")
   # Enable STBY (standby)
   GPIO.output(13, GPIO.LOW)
 
@@ -109,7 +131,7 @@ def move(seconds):
 
 
 def terminate():
-  print("terminate")
+  sys.stdout.write("terminate\r\n")
   # Reset all the GPIO pins by setting them to LOW
   global pwm
   pwm.stop()
@@ -148,7 +170,7 @@ kthread = KeyboardThread(my_callback)
 
 pwm = None
 pwm2 = None
-
+speed = 0
 
 def GetChar(Block=True):
   if Block or select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
@@ -156,7 +178,6 @@ def GetChar(Block=True):
   raise error('NoChar')
 
 
-speed = 0
 
 if __name__ == '__main__':
   try:
@@ -169,23 +190,27 @@ if __name__ == '__main__':
         mc = GetChar(False)
         if mc == 'w' and speed != 100:
           tmpspeed = speed
-          speed = speed + 10
+          speed += 10
           if tmpspeed == 0:
             setForward()
           setMotorSpeed(abs(speed))
         elif mc == 's' and speed != -100:
           tmpspeed = speed
-          speed = speed - 10
+          speed -= 10
           if tmpspeed == 0:
             setBackward()
           setMotorSpeed(abs(speed))
-
+        elif mc == 'd':
+          turnRight(abs(speed))
+        elif mc == 'a':
+	  turnLeft(abs(speed))
         elif mc == 'x':
           terminate()
           GPIO.cleanup()
           termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
           exit()
-
+      except:
+        pass
 
 
         #initialize()
@@ -206,11 +231,11 @@ if __name__ == '__main__':
 
 
     # Reset by pressing CTRL + C
-    except KeyboardInterrupt:
-      print("Stopped by user")
-      #terminate()
-      #GPIO.cleanup()
-      termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
+  except KeyboardInterrupt:
+    sys.stdout.write("Stopped by user\r\n")
+    #terminate()
+    #GPIO.cleanup()
+    termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
 
 
 ## Set the motor speed
