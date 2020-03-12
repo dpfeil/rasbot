@@ -159,63 +159,58 @@ def GetChar(Block=True):
 speed = 0
 
 if __name__ == '__main__':
-    try:
-	initialize()
-	setMotorSpeed(speed)
-	setForward()
-	standByOff()
-	while True:
-	  try:
-	    mc = GetChar(False)
-	    if mc == 'w' and speed != 100:
-	      tmpspeed = speed
-	      speed = speed + 10
-	      if tmpspeed == 0:
-                setBackward()
-              setMotorSpeed(abs(speed))
-	    elif mc == 's' and speed != -100:
-	      tmpspeed = speed
-	      speed = speed - 10
-	      if tmpspeed == 0:
-		setBackward()
-	      setMotorSpeed(abs(speed))
+  try:
+    initialize()
+    setMotorSpeed(speed)
+    setForward()
+    standByOff()
+    while True:
+      try:
+        mc = GetChar(False)
+        if mc == 'w' and speed != 100:
+          tmpspeed = speed
+          speed = speed + 10
+          if tmpspeed == 0:
+            setForward()
+          setMotorSpeed(abs(speed))
+        elif mc == 's' and speed != -100:
+          tmpspeed = speed
+          speed = speed - 10
+          if tmpspeed == 0:
+            setBackward()
+          setMotorSpeed(abs(speed))
 
-	    elif mc == 'x':
-	      terminate()
-	      GPIO.cleanup()
-              termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
-	      exit()
+        elif mc == 'x':
+          terminate()
+          GPIO.cleanup()
+          termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
+          exit()
 
 
 
-	#initialize()
+        #initialize()
         #setMotorSpeed()
         #setForward()
         #move(1.9)
         #time.sleep(1)
-	#setTurnDimeLeft()
-	#move(1.9);
-	#time.sleep(1)
+        #setTurnDimeLeft()
+        #move(1.9);
+        #time.sleep(1)
         #setTurnDimeRight()
         #move(1.9);
-	#time.sleep(1)
+	      #time.sleep(1)
         #setBackward()
         #move(1.9)
-	#terminate()
+	      #terminate()
         #GPIO.cleanup()
-	#termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
 
-        #while True:
-        #    dist = distance()
-        #    print ("Measured Distance = %.1f cm" % dist)
-        #    time.sleep(1)
 
-        # Reset by pressing CTRL + C
+    # Reset by pressing CTRL + C
     except KeyboardInterrupt:
-        print("Stopped by user")
-        #terminate()
-        #GPIO.cleanup()
-	termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
+      print("Stopped by user")
+      #terminate()
+      #GPIO.cleanup()
+      termios.tcsetattr(file_desc, termios.TCSADRAIN, old_setting)
 
 
 ## Set the motor speed
